@@ -2,6 +2,9 @@ FROM node:22-alpine
 
 WORKDIR /app
 
+# Install OpenSSL required by Prisma schema engine
+RUN apk add --no-cache openssl
+
 # Copy manifests and Prisma schema first for better layer caching
 COPY package*.json ./
 COPY prisma ./prisma/
