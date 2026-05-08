@@ -1,7 +1,33 @@
-﻿import { useState, useEffect } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import api from "../services/api";
 import type { Food, Category } from "../types";
 import LoadingSpinner from "../components/LoadingSpinner";
+
+function resizeImageToBase64(file: File, maxPx = 800): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > height) {
+          if (width > maxPx) { height = Math.round((height * maxPx) / width); width = maxPx; }
+        } else {
+          if (height > maxPx) { width = Math.round((width * maxPx) / height); height = maxPx; }
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext("2d")!.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", 0.85));
+      };
+      img.onerror = reject;
+      img.src = e.target!.result as string;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
 
 const EMPTY_FORM = { name: "", description: "", price: "", imageUrl: "", categoryId: "" };
 
@@ -18,11 +44,35 @@ export default function AdminMenuPage() {
   const [formError, setFormError] = useState("");
   const [filterCategory, setFilterCategory] = useState<string>("ALL");
 
+  // Add-form image upload
+  const [addImagePreview, setAddImagePreview] = useState<string | null>(null);
+  const addFileRef = useRef<HTMLInputElement>(null);
+
+  async function handleAddImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const b64 = await resizeImageToBase64(file);
+    setForm((prev) => ({ ...prev, imageUrl: b64 }));
+    setAddImagePreview(b64);
+  }
+
   // Edit state
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<EditForm>(EMPTY_FORM);
   const [editSubmitting, setEditSubmitting] = useState(false);
   const [editError, setEditError] = useState("");
+
+  // Edit-form image upload
+  const [editImagePreview, setEditImagePreview] = useState<string | null>(null);
+  const editFileRef = useRef<HTMLInputElement>(null);
+
+  async function handleEditImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const b64 = await resizeImageToBase64(file);
+    setEditForm((prev) => ({ ...prev, imageUrl: b64 }));
+    setEditImagePreview(b64);
+  }
 
   useEffect(() => {
     async function fetchData() {
@@ -70,6 +120,8 @@ export default function AdminMenuPage() {
       const newFood: Food = { ...res.data, avgRating: null, reviewCount: 0 };
       setFoods((prev) => [...prev, newFood].sort((a, b) => a.name.localeCompare(b.name)));
       setForm(EMPTY_FORM);
+      setAddImagePreview(null);
+      if (addFileRef.current) addFileRef.current.value = "";
     } catch (err: any) {
       setFormError(err.response?.data?.message ?? "Failed to add item.");
     } finally {
@@ -86,11 +138,14 @@ export default function AdminMenuPage() {
       imageUrl: food.imageUrl,
       categoryId: String(food.categoryId),
     });
+    setEditImagePreview(food.imageUrl);
     setEditError("");
   }
 
   function cancelEdit() {
     setEditingId(null);
+    setEditImagePreview(null);
+    if (editFileRef.current) editFileRef.current.value = "";
     setEditError("");
   }
 
@@ -164,10 +219,30 @@ export default function AdminMenuPage() {
               className={`${inputCls} resize-none`} placeholder="A delicious classic pizza..." />
           </div>
           <div className="sm:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
-            <input type="url" required value={form.imageUrl}
-              onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
-              className={inputCls} placeholder="https://example.com/image.jpg" />
+            <label className="block text-sm font-medium text-gray-700 mb-1">Image</label>
+            <div className="flex items-start gap-3">
+              {addImagePreview && (
+                <img src={addImagePreview} alt="preview"
+                  className="h-16 w-16 rounded-lg object-cover flex-shrink-0 border border-gray-200" />
+              )}
+              <div className="flex-1 space-y-2">
+                <input type="text" required value={form.imageUrl}
+                  onChange={(e) => {
+                    setForm({ ...form, imageUrl: e.target.value });
+                    setAddImagePreview(e.target.value || null);
+                  }}
+                  className={inputCls} placeholder="https://example.com/image.jpg" />
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-400">or</span>
+                  <button type="button" onClick={() => addFileRef.current?.click()}
+                    className="text-xs font-medium text-primary hover:underline">
+                    Upload from device
+                  </button>
+                  <input ref={addFileRef} type="file" accept="image/*" className="hidden"
+                    onChange={handleAddImageChange} />
+                </div>
+              </div>
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
@@ -256,10 +331,30 @@ export default function AdminMenuPage() {
                               className={`${inputCls} resize-none`} />
                           </div>
                           <div>
-                            <label className="block text-xs font-medium text-gray-600 mb-1">Image URL</label>
-                            <input type="url" required value={editForm.imageUrl}
-                              onChange={(e) => setEditForm({ ...editForm, imageUrl: e.target.value })}
-                              className={inputCls} />
+                            <label className="block text-xs font-medium text-gray-600 mb-1">Image</label>
+                            <div className="flex items-start gap-2">
+                              {editImagePreview && (
+                                <img src={editImagePreview} alt="preview"
+                                  className="h-10 w-10 rounded-lg object-cover flex-shrink-0 border border-gray-200" />
+                              )}
+                              <div className="flex-1 space-y-1">
+                                <input type="text" required value={editForm.imageUrl}
+                                  onChange={(e) => {
+                                    setEditForm({ ...editForm, imageUrl: e.target.value });
+                                    setEditImagePreview(e.target.value || null);
+                                  }}
+                                  className={inputCls} />
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs text-gray-400">or</span>
+                                  <button type="button" onClick={() => editFileRef.current?.click()}
+                                    className="text-xs font-medium text-primary hover:underline">
+                                    Upload from device
+                                  </button>
+                                  <input ref={editFileRef} type="file" accept="image/*" className="hidden"
+                                    onChange={handleEditImageChange} />
+                                </div>
+                              </div>
+                            </div>
                           </div>
                           <div className="sm:col-span-3 flex items-center gap-3 mt-1">
                             {editError && <p className="text-red-500 text-sm flex-1">{editError}</p>}
