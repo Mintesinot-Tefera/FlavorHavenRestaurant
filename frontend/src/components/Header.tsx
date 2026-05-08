@@ -60,9 +60,18 @@ export default function Header() {
               </Link>
             )}
 
+            {isAuthenticated && user?.role === "ADMIN" && (
+              <Link
+                to="/admin"
+                className="text-primary font-semibold hover:text-primary-dark transition-colors"
+              >
+                Admin
+              </Link>
+            )}
+
             {isAuthenticated ? (
               <div className="flex items-center gap-3">
-                <UserAvatar name={user?.name ?? ""} />
+                <UserAvatar name={user?.name ?? ""} avatarUrl={user?.avatarUrl} />
                 <button
                   onClick={logout}
                   className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
@@ -149,10 +158,19 @@ export default function Header() {
                 My Orders
               </Link>
             )}
+            {isAuthenticated && user?.role === "ADMIN" && (
+              <Link
+                to="/admin"
+                className="block px-3 py-2 text-primary font-semibold hover:text-primary-dark"
+                onClick={() => setMenuOpen(false)}
+              >
+                Admin
+              </Link>
+            )}
             {isAuthenticated ? (
               <>
                 <div className="px-3 py-2">
-                  <UserAvatar name={user?.name ?? ""} onClick={() => setMenuOpen(false)} />
+                  <UserAvatar name={user?.name ?? ""} avatarUrl={user?.avatarUrl} onClick={() => setMenuOpen(false)} />
                 </div>
                 <button
                   onClick={() => {

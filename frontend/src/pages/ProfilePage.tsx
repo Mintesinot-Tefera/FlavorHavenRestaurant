@@ -1,11 +1,43 @@
-import { useState, type FormEvent } from "react";
+import { useState, useRef, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import { useAuth } from "../context/AuthContext";
 
+function resizeImageToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const MAX = 300;
+        let { width, height } = img;
+        if (width > height) {
+          if (width > MAX) { height = Math.round((height * MAX) / width); width = MAX; }
+        } else {
+          if (height > MAX) { width = Math.round((width * MAX) / height); height = MAX; }
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext("2d")!.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", 0.82));
+      };
+      img.onerror = reject;
+      img.src = e.target!.result as string;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 export default function ProfilePage() {
   const { user, logout, updateUser } = useAuth();
   const navigate = useNavigate();
+
+  // Avatar state
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(user?.avatarUrl ?? null);
+  const [avatarFile, setAvatarFile] = useState<string | null | undefined>(undefined);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Edit profile state
   const [name, setName] = useState(user?.name ?? "");
@@ -33,8 +65,9 @@ export default function ProfilePage() {
     setProfileSuccess("");
     setProfileLoading(true);
     try {
-      const response = await api.put("/auth/me", { name, email });
+      const response = await api.put("/auth/me", { name, email, avatarUrl: avatarFile });
       updateUser(response.data);
+      setAvatarFile(undefined);
       setProfileSuccess("Profile updated successfully.");
     } catch (err: any) {
       setProfileError(err.response?.data?.message || "Failed to update profile.");
@@ -88,6 +121,58 @@ export default function ProfilePage() {
   return (
     <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8 py-12 space-y-10">
       <h1 className="text-3xl font-bold text-gray-900">My Profile</h1>
+
+      {/* Avatar */}
+      <section className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h2 className="text-xl font-semibold text-gray-900 mb-5">Profile Picture</h2>
+        <div className="flex items-center gap-6">
+          <div className="h-20 w-20 rounded-full overflow-hidden bg-primary flex items-center justify-center shrink-0">
+            {avatarPreview ? (
+              <img src={avatarPreview} alt="Avatar" className="h-full w-full object-cover" />
+            ) : (
+              <span className="text-3xl font-bold text-white">
+                {user?.name.charAt(0).toUpperCase()}
+              </span>
+            )}
+          </div>
+          <div className="space-y-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                const base64 = await resizeImageToBase64(file);
+                setAvatarPreview(base64);
+                setAvatarFile(base64);
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              Choose Photo
+            </button>
+            {avatarPreview && (
+              <button
+                type="button"
+                onClick={() => {
+                  setAvatarPreview(null);
+                  setAvatarFile(null);
+                  if (fileInputRef.current) fileInputRef.current.value = "";
+                }}
+                className="ml-2 rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+              >
+                Remove
+              </button>
+            )}
+            <p className="text-xs text-gray-400">JPG, PNG — resized to 300×300</p>
+          </div>
+        </div>
+      </section>
 
       {/* Edit Profile */}
       <section className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
