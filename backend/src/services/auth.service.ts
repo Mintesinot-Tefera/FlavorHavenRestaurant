@@ -53,3 +53,44 @@ export async function getProfile(userId: number) {
 
   return user;
 }
+
+export async function updateProfile(userId: number, name: string, email: string) {
+  const existing = await prisma.user.findFirst({
+    where: { email, NOT: { id: userId } },
+  });
+  if (existing) {
+    throw Object.assign(new Error("Email already in use"), { status: 409 });
+  }
+
+  return prisma.user.update({
+    where: { id: userId },
+    data: { name, email },
+    select: { id: true, name: true, email: true, createdAt: true },
+  });
+}
+
+export async function changePassword(
+  userId: number,
+  currentPassword: string,
+  newPassword: string
+) {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) {
+    throw Object.assign(new Error("User not found"), { status: 404 });
+  }
+
+  const isValid = await bcrypt.compare(currentPassword, user.password);
+  if (!isValid) {
+    throw Object.assign(new Error("Current password is incorrect"), { status: 400 });
+  }
+
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+  await prisma.user.update({
+    where: { id: userId },
+    data: { password: hashedPassword },
+  });
+}
+
+export async function deleteAccount(userId: number) {
+  await prisma.user.delete({ where: { id: userId } });
+}

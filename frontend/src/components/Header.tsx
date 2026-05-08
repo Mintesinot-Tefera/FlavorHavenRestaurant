@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import { useState } from "react";
+import UserAvatar from "./UserAvatar";
 
 export default function Header() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -60,10 +61,8 @@ export default function Header() {
             )}
 
             {isAuthenticated ? (
-              <div className="flex items-center gap-4">
-                <span className="text-gray-600 text-sm">
-                  Hello, <span className="font-semibold">{user?.name}</span>
-                </span>
+              <div className="flex items-center gap-3">
+                <UserAvatar name={user?.name ?? ""} />
                 <button
                   onClick={logout}
                   className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
@@ -152,9 +151,9 @@ export default function Header() {
             )}
             {isAuthenticated ? (
               <>
-                <span className="block px-3 py-2 text-gray-600 text-sm">
-                  Hello, {user?.name}
-                </span>
+                <div className="px-3 py-2">
+                  <UserAvatar name={user?.name ?? ""} onClick={() => setMenuOpen(false)} />
+                </div>
                 <button
                   onClick={() => {
                     logout();

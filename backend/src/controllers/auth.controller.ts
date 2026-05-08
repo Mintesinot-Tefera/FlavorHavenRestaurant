@@ -67,3 +67,76 @@ export async function getProfile(
     next(error);
   }
 }
+
+export async function updateProfile(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const userId = req.user!.userId;
+    const { name, email } = req.body;
+
+    if (!name || !email) {
+      res.status(400).json({ message: "Name and email are required" });
+      return;
+    }
+
+    const user = await authService.updateProfile(userId, name, email);
+    res.json(user);
+  } catch (error: any) {
+    if (error.status) {
+      res.status(error.status).json({ message: error.message });
+      return;
+    }
+    next(error);
+  }
+}
+
+export async function changePassword(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const userId = req.user!.userId;
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      res.status(400).json({ message: "Current and new password are required" });
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      res.status(400).json({ message: "New password must be at least 6 characters" });
+      return;
+    }
+
+    await authService.changePassword(userId, currentPassword, newPassword);
+    res.json({ message: "Password updated successfully" });
+  } catch (error: any) {
+    if (error.status) {
+      res.status(error.status).json({ message: error.message });
+      return;
+    }
+    next(error);
+  }
+}
+
+export async function deleteAccount(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const userId = req.user!.userId;
+    await authService.deleteAccount(userId);
+    res.status(204).send();
+  } catch (error: any) {
+    if (error.status) {
+      res.status(error.status).json({ message: error.message });
+      return;
+    }
+    next(error);
+  }
+}

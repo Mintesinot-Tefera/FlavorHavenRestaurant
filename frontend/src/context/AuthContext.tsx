@@ -16,6 +16,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
+  updateUser: (user: User) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -29,7 +30,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     async function loadUser() {
-      if (token) {
+      const storedToken = localStorage.getItem("token");
+      if (storedToken) {
         try {
           const response = await api.get("/auth/me");
           setUser(response.data);
@@ -42,7 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsLoading(false);
     }
     loadUser();
-  }, [token]);
+  }, []);
 
   async function login(email: string, password: string) {
     const response = await api.post("/auth/login", { email, password });
@@ -62,6 +64,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }
 
+  function updateUser(updatedUser: User) {
+    setUser(updatedUser);
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -72,6 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         register,
         logout,
+        updateUser,
       }}
     >
       {children}
