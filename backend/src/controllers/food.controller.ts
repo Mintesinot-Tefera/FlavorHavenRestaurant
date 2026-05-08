@@ -62,6 +62,31 @@ export async function create(req: Request, res: Response, next: NextFunction) {
   }
 }
 
+export async function update(req: Request, res: Response, next: NextFunction) {
+  try {
+    const id = parseInt(req.params.id as string, 10);
+    if (isNaN(id)) {
+      res.status(400).json({ message: "Invalid food ID" });
+      return;
+    }
+    const { name, description, price, imageUrl, categoryId } = req.body;
+    const food = await foodService.update(id, {
+      ...(name !== undefined && { name }),
+      ...(description !== undefined && { description }),
+      ...(price !== undefined && { price: parseFloat(price) }),
+      ...(imageUrl !== undefined && { imageUrl }),
+      ...(categoryId !== undefined && { categoryId: parseInt(categoryId, 10) }),
+    });
+    res.json(food);
+  } catch (error: any) {
+    if (error.status) {
+      res.status(error.status).json({ message: error.message });
+      return;
+    }
+    next(error);
+  }
+}
+
 export async function remove(req: Request, res: Response, next: NextFunction) {
   try {
     const id = parseInt(req.params.id as string, 10);

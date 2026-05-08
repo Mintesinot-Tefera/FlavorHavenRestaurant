@@ -8,6 +8,7 @@ const router = Router();
 router.get("/", foodController.getAll);
 router.get("/:id", foodController.getById);
 router.post("/", authenticate, requireAdmin, foodController.create);
+router.put("/:id", authenticate, requireAdmin, foodController.update);
 router.delete("/:id", authenticate, requireAdmin, foodController.remove);
 
 export default router;

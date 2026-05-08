@@ -4,6 +4,15 @@ import api from "../services/api";
 import type { Order, Food, Category } from "../types";
 import LoadingSpinner from "../components/LoadingSpinner";
 
+interface AdminUser {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  createdAt: string;
+  _count: { orders: number };
+}
+
 const STATUS_STYLES: Record<string, string> = {
   PENDING: "bg-yellow-100 text-yellow-800",
   CONFIRMED: "bg-blue-100 text-blue-800",
@@ -19,20 +28,23 @@ export default function AdminDashboardPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [foods, setFoods] = useState<Food[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const [ordersRes, foodsRes, categoriesRes] = await Promise.all([
+        const [ordersRes, foodsRes, categoriesRes, usersRes] = await Promise.all([
           api.get("/orders/admin"),
           api.get("/foods"),
           api.get("/categories"),
+          api.get("/users"),
         ]);
         setOrders(ordersRes.data);
         setFoods(foodsRes.data);
         setCategories(categoriesRes.data);
+        setUsers(usersRes.data);
       } catch {
         setError("Failed to load dashboard data.");
       } finally {
@@ -56,6 +68,27 @@ export default function AdminDashboardPage() {
     ["PENDING", "CONFIRMED", "PREPARING", "READY"].includes(o.status)
   ).length;
 
+  const deliveredOrders = orders.filter((o) => o.status === "DELIVERED");
+  const totalRevenue = deliveredOrders.reduce(
+    (sum, o) => sum + parseFloat(o.totalPrice),
+    0
+  );
+  const customerCount = users.filter((u) => u.role === "USER").length;
+
+  // Revenue for the last 7 days
+  const today = new Date();
+  const revenueByDay: { label: string; revenue: number }[] = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(today);
+    d.setDate(d.getDate() - (6 - i));
+    const label = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    const dayRevenue = deliveredOrders
+      .filter((o) => new Date(o.createdAt).toDateString() === d.toDateString())
+      .reduce((sum, o) => sum + parseFloat(o.totalPrice), 0);
+    return { label, revenue: dayRevenue };
+  });
+
+  const maxRevenue = Math.max(...revenueByDay.map((d) => d.revenue), 1);
+
   const statusCounts = ALL_STATUSES.map((s) => ({
     status: s,
     count: orders.filter((o) => o.status === s).length,
@@ -70,22 +103,49 @@ export default function AdminDashboardPage() {
       <h1 className="text-3xl font-bold text-gray-900 mb-8">Dashboard</h1>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
-        <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-gray-500 mb-1">Menu Items</p>
-          <p className="text-3xl font-bold text-gray-900">{foods.length}</p>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-10">
+        <div className="rounded-xl border border-blue-100 bg-blue-50 p-5 shadow-sm">
+          <p className="text-sm text-blue-600 mb-1">Menu Items</p>
+          <p className="text-3xl font-bold text-blue-700">{foods.length}</p>
         </div>
-        <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-gray-500 mb-1">Categories</p>
-          <p className="text-3xl font-bold text-gray-900">{categories.length}</p>
+        <div className="rounded-xl border border-purple-100 bg-purple-50 p-5 shadow-sm">
+          <p className="text-sm text-purple-600 mb-1">Categories</p>
+          <p className="text-3xl font-bold text-purple-700">{categories.length}</p>
         </div>
-        <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-gray-500 mb-1">Total Orders</p>
-          <p className="text-3xl font-bold text-gray-900">{orders.length}</p>
+        <div className="rounded-xl border border-pink-100 bg-pink-50 p-5 shadow-sm">
+          <p className="text-sm text-pink-600 mb-1">Customers</p>
+          <p className="text-3xl font-bold text-pink-700">{customerCount}</p>
+        </div>
+        <div className="rounded-xl border border-sky-100 bg-sky-50 p-5 shadow-sm">
+          <p className="text-sm text-sky-600 mb-1">Total Orders</p>
+          <p className="text-3xl font-bold text-sky-700">{orders.length}</p>
         </div>
         <div className="rounded-xl border border-orange-100 bg-orange-50 p-5 shadow-sm">
           <p className="text-sm text-orange-600 mb-1">Active Orders</p>
           <p className="text-3xl font-bold text-orange-600">{activeOrders}</p>
+        </div>
+        <div className="rounded-xl border border-green-100 bg-green-50 p-5 shadow-sm">
+          <p className="text-sm text-green-700 mb-1">Total Revenue</p>
+          <p className="text-2xl font-bold text-green-700">${totalRevenue.toFixed(2)}</p>
+        </div>
+      </div>
+
+      {/* Revenue Bar Chart (last 7 days) */}
+      <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm mb-6">
+        <h2 className="text-base font-semibold text-gray-800 mb-4">Revenue — Last 7 Days</h2>
+        <div className="flex items-end gap-2 h-28">
+          {revenueByDay.map(({ label, revenue }) => (
+            <div key={label} className="flex-1 flex flex-col items-center gap-1">
+              <span className="text-[10px] text-gray-500 font-medium">
+                {revenue > 0 ? `$${revenue.toFixed(0)}` : ""}
+              </span>
+              <div
+                className="w-full rounded-t bg-primary opacity-80 transition-all"
+                style={{ height: `${Math.max((revenue / maxRevenue) * 80, revenue > 0 ? 4 : 0)}px` }}
+              />
+              <span className="text-[10px] text-gray-400 text-center leading-tight">{label}</span>
+            </div>
+          ))}
         </div>
       </div>
 

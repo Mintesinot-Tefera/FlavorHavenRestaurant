@@ -86,6 +86,24 @@ export async function create(data: {
   });
 }
 
+export async function update(id: number, data: {
+  name?: string;
+  description?: string;
+  price?: number;
+  imageUrl?: string;
+  categoryId?: number;
+}) {
+  const food = await prisma.food.findUnique({ where: { id } });
+  if (!food) {
+    throw Object.assign(new Error("Food not found"), { status: 404 });
+  }
+  return prisma.food.update({
+    where: { id },
+    data,
+    include: { category: true },
+  });
+}
+
 export async function remove(id: number) {
   const food = await prisma.food.findUnique({ where: { id } });
   if (!food) {

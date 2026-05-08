@@ -78,6 +78,18 @@ export default function Header() {
                 >
                   Menu
                 </Link>
+                <Link
+                  to="/admin/categories"
+                  className="text-primary font-semibold hover:text-primary-dark transition-colors"
+                >
+                  Categories
+                </Link>
+                <Link
+                  to="/admin/users"
+                  className="text-primary font-semibold hover:text-primary-dark transition-colors"
+                >
+                  Users
+                </Link>
               </>
             )}
 
@@ -189,6 +201,20 @@ export default function Header() {
                   onClick={() => setMenuOpen(false)}
                 >
                   Menu
+                </Link>
+                <Link
+                  to="/admin/categories"
+                  className="block px-3 py-2 text-primary font-semibold hover:text-primary-dark"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Categories
+                </Link>
+                <Link
+                  to="/admin/users"
+                  className="block px-3 py-2 text-primary font-semibold hover:text-primary-dark"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Users
                 </Link>
               </>
             )}

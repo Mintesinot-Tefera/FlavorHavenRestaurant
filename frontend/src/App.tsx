@@ -11,6 +11,8 @@ import OrdersPage from "./pages/OrdersPage";
 import ProfilePage from "./pages/ProfilePage";
 import AdminOrdersPage from "./pages/AdminOrdersPage";
 import AdminMenuPage from "./pages/AdminMenuPage";
+import AdminCategoriesPage from "./pages/AdminCategoriesPage";
+import AdminUsersPage from "./pages/AdminUsersPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
@@ -59,6 +61,22 @@ function App() {
             element={
               <AdminRoute>
                 <AdminMenuPage />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/categories"
+            element={
+              <AdminRoute>
+                <AdminCategoriesPage />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/users"
+            element={
+              <AdminRoute>
+                <AdminUsersPage />
               </AdminRoute>
             }
           />
