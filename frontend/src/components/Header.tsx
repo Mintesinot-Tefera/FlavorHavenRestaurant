@@ -23,14 +23,16 @@ export default function Header() {
               to="/"
               className="text-gray-700 hover:text-primary font-medium transition-colors"
             >
-              Home
+              {user?.role === "ADMIN" ? "Dashboard" : "Store"}
             </Link>
-            <a
-              href="#menu"
-              className="text-gray-700 hover:text-primary font-medium transition-colors"
-            >
-              Menu
-            </a>
+            {user?.role !== "ADMIN" && (
+              <a
+                href="#menu"
+                className="text-gray-700 hover:text-primary font-medium transition-colors"
+              >
+                Menu
+              </a>
+            )}
 
             {user?.role !== "ADMIN" && (
               <Link
@@ -143,15 +145,17 @@ export default function Header() {
               className="block px-3 py-2 text-gray-700 hover:text-primary font-medium"
               onClick={() => setMenuOpen(false)}
             >
-              Home
+              {user?.role === "ADMIN" ? "Dashboard" : "Store"}
             </Link>
-            <a
-              href="#menu"
-              className="block px-3 py-2 text-gray-700 hover:text-primary font-medium"
-              onClick={() => setMenuOpen(false)}
-            >
-              Menu
-            </a>
+            {user?.role !== "ADMIN" && (
+              <a
+                href="#menu"
+                className="block px-3 py-2 text-gray-700 hover:text-primary font-medium"
+                onClick={() => setMenuOpen(false)}
+              >
+                Menu
+              </a>
+            )}
             {user?.role !== "ADMIN" && (
               <Link
                 to="/cart"
