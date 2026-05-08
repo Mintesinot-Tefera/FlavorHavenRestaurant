@@ -66,3 +66,40 @@ export async function getById(id: number) {
     reviewCount: _count.reviews,
   };
 }
+
+export async function create(data: {
+  name: string;
+  description: string;
+  price: number;
+  imageUrl: string;
+  categoryId: number;
+}) {
+  return prisma.food.create({
+    data: {
+      name: data.name,
+      description: data.description,
+      price: data.price,
+      imageUrl: data.imageUrl,
+      categoryId: data.categoryId,
+    },
+    include: { category: true },
+  });
+}
+
+export async function remove(id: number) {
+  const food = await prisma.food.findUnique({ where: { id } });
+  if (!food) {
+    throw Object.assign(new Error("Food not found"), { status: 404 });
+  }
+
+  const orderItemCount = await prisma.orderItem.count({ where: { foodId: id } });
+  if (orderItemCount > 0) {
+    throw Object.assign(
+      new Error("Cannot delete a food item that exists in orders"),
+      { status: 409 }
+    );
+  }
+
+  await prisma.review.deleteMany({ where: { foodId: id } });
+  return prisma.food.delete({ where: { id } });
+}

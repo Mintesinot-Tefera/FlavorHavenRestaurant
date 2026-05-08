@@ -8,6 +8,7 @@ import CartPage from "./pages/CartPage";
 import OrdersPage from "./pages/OrdersPage";
 import ProfilePage from "./pages/ProfilePage";
 import AdminOrdersPage from "./pages/AdminOrdersPage";
+import AdminMenuPage from "./pages/AdminMenuPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
@@ -43,6 +44,14 @@ function App() {
             element={
               <AdminRoute>
                 <AdminOrdersPage />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/menu"
+            element={
+              <AdminRoute>
+                <AdminMenuPage />
               </AdminRoute>
             }
           />
