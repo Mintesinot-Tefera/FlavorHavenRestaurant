@@ -52,3 +52,15 @@ export async function getByFood(foodId: number) {
     orderBy: { createdAt: "desc" },
   });
 }
+
+export async function deleteReview(userId: number, foodId: number) {
+  const review = await prisma.review.findUnique({
+    where: { userId_foodId: { userId, foodId } },
+  });
+
+  if (!review) {
+    throw Object.assign(new Error("Review not found"), { status: 404 });
+  }
+
+  await prisma.review.delete({ where: { userId_foodId: { userId, foodId } } });
+}

@@ -62,3 +62,28 @@ export async function getByFood(
     next(error);
   }
 }
+
+export async function deleteReview(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const userId = req.user!.userId;
+    const foodId = parseInt(req.params.foodId as string, 10);
+
+    if (isNaN(foodId)) {
+      res.status(400).json({ message: "Invalid food ID" });
+      return;
+    }
+
+    await reviewService.deleteReview(userId, foodId);
+    res.status(204).send();
+  } catch (error: any) {
+    if (error.status) {
+      res.status(error.status).json({ message: error.message });
+      return;
+    }
+    next(error);
+  }
+}

@@ -6,5 +6,6 @@ const router = Router();
 
 router.get("/food/:foodId", reviewController.getByFood);
 router.post("/food/:foodId", authenticate, reviewController.upsertReview);
+router.delete("/food/:foodId", authenticate, reviewController.deleteReview);
 
 export default router;

@@ -21,6 +21,9 @@ export default function ReviewSection({ foodId }: ReviewSectionProps) {
   const [submitError, setSubmitError] = useState("");
   const [submitSuccess, setSubmitSuccess] = useState(false);
 
+  const [deletingReview, setDeletingReview] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+
   useEffect(() => {
     fetchReviews();
   }, [foodId]);
@@ -81,6 +84,22 @@ export default function ReviewSection({ foodId }: ReviewSectionProps) {
     }
   }
 
+  async function handleDeleteReview() {
+    setDeleteError("");
+    setDeletingReview(true);
+    try {
+      await api.delete(`/reviews/food/${foodId}`);
+      setRating(0);
+      setComment("");
+      setSubmitSuccess(false);
+      await fetchReviews();
+    } catch (err: any) {
+      setDeleteError(err.response?.data?.message || "Failed to delete review.");
+    } finally {
+      setDeletingReview(false);
+    }
+  }
+
   return (
     <div className="mt-12">
       <h2 className="text-2xl font-bold text-gray-900 mb-6">
@@ -99,15 +118,27 @@ export default function ReviewSection({ foodId }: ReviewSectionProps) {
           </h3>
 
           {existingUserReview && !submitSuccess && (
-            <p className="text-sm text-gray-600 mb-4">
-              You already reviewed this item.{" "}
+            <div className="mb-4">
+              <p className="text-sm text-gray-600 mb-2">
+                You already reviewed this item.{" "}
+                <button
+                  onClick={handleEditReview}
+                  className="text-primary hover:underline font-medium"
+                >
+                  Edit your review
+                </button>
+              </p>
+              {deleteError && (
+                <p className="text-sm text-red-500 mb-2">{deleteError}</p>
+              )}
               <button
-                onClick={handleEditReview}
-                className="text-primary hover:underline font-medium"
+                onClick={handleDeleteReview}
+                disabled={deletingReview}
+                className="text-sm text-red-500 hover:underline font-medium disabled:opacity-50"
               >
-                Edit your review
+                {deletingReview ? "Deleting..." : "Delete your review"}
               </button>
-            </p>
+            </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
