@@ -1,10 +1,12 @@
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcrypt";
 
 const prisma = new PrismaClient();
 
 async function main() {
   await prisma.orderItem.deleteMany();
   await prisma.order.deleteMany();
+  await prisma.review.deleteMany();
   await prisma.food.deleteMany();
   await prisma.category.deleteMany();
 
@@ -131,6 +133,20 @@ async function main() {
   });
 
   console.log("Seed data created successfully!");
+
+  // Upsert admin user
+  const adminPassword = await bcrypt.hash("admin123", 10);
+  await prisma.user.upsert({
+    where: { email: "admin@flavorhaven.com" },
+    update: {},
+    create: {
+      name: "Admin",
+      email: "admin@flavorhaven.com",
+      password: adminPassword,
+      role: "ADMIN",
+    },
+  });
+  console.log("Admin user ready: admin@flavorhaven.com / admin123");
 }
 
 main()

@@ -35,3 +35,60 @@ export async function getUserOrders(
     next(error);
   }
 }
+
+export async function getAllOrders(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const orders = await orderService.getAllOrders();
+    res.json(orders);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function updateStatus(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const orderId = parseInt(req.params.id as string, 10);
+    const { status } = req.body;
+
+    if (!status) {
+      res.status(400).json({ message: "Status is required" });
+      return;
+    }
+
+    const order = await orderService.updateStatus(orderId, status);
+    res.json(order);
+  } catch (error: any) {
+    if (error.status) {
+      res.status(error.status).json({ message: error.message });
+      return;
+    }
+    next(error);
+  }
+}
+
+export async function cancelOrder(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const orderId = parseInt(req.params.id as string, 10);
+    const userId = req.user!.userId;
+    const order = await orderService.cancelOrder(orderId, userId);
+    res.json(order);
+  } catch (error: any) {
+    if (error.status) {
+      res.status(error.status).json({ message: error.message });
+      return;
+    }
+    next(error);
+  }
+}

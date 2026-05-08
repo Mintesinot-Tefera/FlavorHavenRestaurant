@@ -75,14 +75,14 @@ export async function updateProfile(
 ) {
   try {
     const userId = req.user!.userId;
-    const { name, email } = req.body;
+    const { name, email, avatarUrl } = req.body;
 
     if (!name || !email) {
       res.status(400).json({ message: "Name and email are required" });
       return;
     }
 
-    const user = await authService.updateProfile(userId, name, email);
+    const user = await authService.updateProfile(userId, name, email, avatarUrl);
     res.json(user);
   } catch (error: any) {
     if (error.status) {

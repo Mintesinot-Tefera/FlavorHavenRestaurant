@@ -69,3 +69,65 @@ export async function getUserOrders(userId: number) {
     orderBy: { createdAt: "desc" },
   });
 }
+
+export async function getAllOrders() {
+  return prisma.order.findMany({
+    include: {
+      user: { select: { id: true, name: true, email: true } },
+      items: { include: { food: true } },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+const VALID_STATUSES = [
+  "PENDING",
+  "CONFIRMED",
+  "PREPARING",
+  "READY",
+  "DELIVERED",
+  "CANCELLED",
+] as const;
+type OrderStatus = (typeof VALID_STATUSES)[number];
+
+export async function updateStatus(orderId: number, status: string) {
+  if (!VALID_STATUSES.includes(status as OrderStatus)) {
+    throw Object.assign(new Error("Invalid status"), { status: 400 });
+  }
+
+  const order = await prisma.order.findUnique({ where: { id: orderId } });
+  if (!order) {
+    throw Object.assign(new Error("Order not found"), { status: 404 });
+  }
+
+  return prisma.order.update({
+    where: { id: orderId },
+    data: { status: status as OrderStatus },
+    include: {
+      user: { select: { id: true, name: true, email: true } },
+      items: { include: { food: true } },
+    },
+  });
+}
+
+export async function cancelOrder(orderId: number, userId: number) {
+  const order = await prisma.order.findUnique({ where: { id: orderId } });
+  if (!order) {
+    throw Object.assign(new Error("Order not found"), { status: 404 });
+  }
+  if (order.userId !== userId) {
+    throw Object.assign(new Error("Unauthorized"), { status: 403 });
+  }
+  if (order.status !== "PENDING") {
+    throw Object.assign(
+      new Error("Only pending orders can be cancelled"),
+      { status: 400 }
+    );
+  }
+
+  return prisma.order.update({
+    where: { id: orderId },
+    data: { status: "CANCELLED" },
+    include: { items: { include: { food: true } } },
+  });
+}

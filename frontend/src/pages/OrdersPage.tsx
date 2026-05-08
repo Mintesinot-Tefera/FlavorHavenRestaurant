@@ -17,6 +17,7 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [cancellingId, setCancellingId] = useState<number | null>(null);
 
   useEffect(() => {
     async function fetchOrders() {
@@ -31,6 +32,20 @@ export default function OrdersPage() {
     }
     fetchOrders();
   }, []);
+
+  async function handleCancel(orderId: number) {
+    setCancellingId(orderId);
+    try {
+      const response = await api.patch(`/orders/${orderId}/cancel`);
+      setOrders((prev) =>
+        prev.map((o) => (o.id === orderId ? response.data : o))
+      );
+    } catch {
+      // silently fail — user can retry
+    } finally {
+      setCancellingId(null);
+    }
+  }
 
   if (loading) return <LoadingSpinner />;
 
@@ -84,13 +99,24 @@ export default function OrdersPage() {
                   })}
                 </p>
               </div>
-              <span
-                className={`inline-block rounded-full px-3 py-1 text-xs font-semibold ${
-                  statusStyles[order.status] || "bg-gray-100 text-gray-800"
-                }`}
-              >
-                {order.status}
-              </span>
+              <div className="flex items-center gap-3">
+                <span
+                  className={`inline-block rounded-full px-3 py-1 text-xs font-semibold ${
+                    statusStyles[order.status] || "bg-gray-100 text-gray-800"
+                  }`}
+                >
+                  {order.status}
+                </span>
+                {order.status === "PENDING" && (
+                  <button
+                    onClick={() => handleCancel(order.id)}
+                    disabled={cancellingId === order.id}
+                    className="rounded-lg border border-red-300 px-3 py-1 text-xs font-medium text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+                  >
+                    {cancellingId === order.id ? "Cancelling..." : "Cancel"}
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="divide-y divide-gray-100">

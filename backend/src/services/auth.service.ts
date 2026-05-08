@@ -17,7 +17,7 @@ export async function register(
   const hashedPassword = await bcrypt.hash(password, 10);
   const user = await prisma.user.create({
     data: { name, email, password: hashedPassword },
-    select: { id: true, name: true, email: true, createdAt: true },
+    select: { id: true, name: true, email: true, role: true, avatarUrl: true, createdAt: true },
   });
 
   return user;
@@ -37,14 +37,14 @@ export async function login(email: string, password: string) {
   const token = generateToken(user.id);
   return {
     token,
-    user: { id: user.id, name: user.name, email: user.email },
+    user: { id: user.id, name: user.name, email: user.email, role: user.role, avatarUrl: user.avatarUrl },
   };
 }
 
 export async function getProfile(userId: number) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { id: true, name: true, email: true, createdAt: true },
+    select: { id: true, name: true, email: true, role: true, avatarUrl: true, createdAt: true },
   });
 
   if (!user) {
@@ -54,7 +54,7 @@ export async function getProfile(userId: number) {
   return user;
 }
 
-export async function updateProfile(userId: number, name: string, email: string) {
+export async function updateProfile(userId: number, name: string, email: string, avatarUrl?: string | null) {
   const existing = await prisma.user.findFirst({
     where: { email, NOT: { id: userId } },
   });
@@ -62,10 +62,13 @@ export async function updateProfile(userId: number, name: string, email: string)
     throw Object.assign(new Error("Email already in use"), { status: 409 });
   }
 
+  const data: any = { name, email };
+  if (avatarUrl !== undefined) data.avatarUrl = avatarUrl;
+
   return prisma.user.update({
     where: { id: userId },
-    data: { name, email },
-    select: { id: true, name: true, email: true, createdAt: true },
+    data,
+    select: { id: true, name: true, email: true, role: true, avatarUrl: true, createdAt: true },
   });
 }
 

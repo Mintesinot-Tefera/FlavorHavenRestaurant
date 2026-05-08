@@ -2,6 +2,8 @@ export interface User {
   id: number;
   name: string;
   email: string;
+  role: "USER" | "ADMIN";
+  avatarUrl: string | null;
 }
 
 export interface Category {
@@ -50,6 +52,7 @@ export interface Order {
   status: string;
   items: OrderItem[];
   createdAt: string;
+  user?: { id: number; name: string; email: string };
 }
 
 export interface LoginCredentials {
