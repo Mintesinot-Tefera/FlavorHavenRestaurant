@@ -54,14 +54,15 @@ model Food {
 }
 
 model Order {
-  id         Int         @id @default(autoincrement())
-  userId     Int         @map("user_id")
-  user       User        @relation(fields: [userId], references: [id])
-  totalPrice Decimal     @db.Decimal(10, 2) @map("total_price")
-  status     OrderStatus @default(PENDING)
-  createdAt  DateTime    @default(now()) @map("created_at")
-  updatedAt  DateTime    @updatedAt @map("updated_at")
-  items      OrderItem[]
+  id              Int         @id @default(autoincrement())
+  userId          Int         @map("user_id")
+  user            User        @relation(fields: [userId], references: [id])
+  totalPrice      Decimal     @db.Decimal(10, 2) @map("total_price")
+  status          OrderStatus @default(PENDING)
+  deliveryAddress String?     @map("delivery_address")
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+  items           OrderItem[]
 
   @@map("orders")
 }

@@ -11,6 +11,7 @@ export default function CartPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [deliveryAddress, setDeliveryAddress] = useState("");
 
   async function handlePlaceOrder() {
     if (!isAuthenticated) {
@@ -21,12 +22,18 @@ export default function CartPage() {
     setLoading(true);
     setError("");
 
+    if (!deliveryAddress.trim()) {
+      setError("Please enter a delivery address.");
+      setLoading(false);
+      return;
+    }
+
     try {
       const orderItems = items.map((item) => ({
         foodId: item.food.id,
         quantity: item.quantity,
       }));
-      await api.post("/orders", { items: orderItems });
+      await api.post("/orders", { items: orderItems, deliveryAddress: deliveryAddress.trim() });
       clearCart();
       navigate("/orders");
     } catch (err: any) {
@@ -192,6 +199,22 @@ export default function CartPage() {
               <span className="text-2xl font-bold text-primary">
                 ${getCartTotal().toFixed(2)}
               </span>
+            </div>
+            <div className="mb-4">
+              <label
+                htmlFor="deliveryAddress"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Delivery Address <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                id="deliveryAddress"
+                rows={3}
+                value={deliveryAddress}
+                onChange={(e) => setDeliveryAddress(e.target.value)}
+                placeholder="Enter your full delivery address"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none resize-none"
+              />
             </div>
             <button
               onClick={handlePlaceOrder}

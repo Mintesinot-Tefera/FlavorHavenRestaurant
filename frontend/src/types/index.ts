@@ -50,6 +50,7 @@ export interface Order {
   userId: number;
   totalPrice: string;
   status: string;
+  deliveryAddress: string | null;
   items: OrderItem[];
   createdAt: string;
   user?: { id: number; name: string; email: string };

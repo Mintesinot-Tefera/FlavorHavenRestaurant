@@ -7,7 +7,7 @@ interface OrderItemInput {
   quantity: number;
 }
 
-export async function create(userId: number, items: OrderItemInput[]) {
+export async function create(userId: number, items: OrderItemInput[], deliveryAddress: string) {
   if (!items || items.length === 0) {
     throw Object.assign(new Error("Order must have at least one item"), {
       status: 400,
@@ -44,6 +44,7 @@ export async function create(userId: number, items: OrderItemInput[]) {
     data: {
       userId,
       totalPrice,
+      deliveryAddress,
       items: {
         create: orderItems,
       },

@@ -98,6 +98,12 @@ export default function OrdersPage() {
                     minute: "2-digit",
                   })}
                 </p>
+                {order.deliveryAddress && (
+                  <p className="text-sm text-gray-500 mt-0.5">
+                    <span className="font-medium text-gray-600">Deliver to:</span>{" "}
+                    {order.deliveryAddress}
+                  </p>
+                )}
               </div>
               <div className="flex items-center gap-3">
                 <span

@@ -185,6 +185,12 @@ export default function AdminOrdersPage() {
                   {expandedId === order.id && (
                     <tr key={`${order.id}-items`}>
                       <td colSpan={6} className="px-6 py-3 bg-gray-50">
+                        {order.deliveryAddress && (
+                          <p className="text-xs text-gray-500 mb-2">
+                            <span className="font-semibold text-gray-600">Deliver to:</span>{" "}
+                            {order.deliveryAddress}
+                          </p>
+                        )}
                         <ul className="space-y-1">
                           {order.items.map((item) => (
                             <li

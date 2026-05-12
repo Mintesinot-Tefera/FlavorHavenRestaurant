@@ -4,14 +4,19 @@ import * as orderService from "../services/order.service";
 export async function create(req: Request, res: Response, next: NextFunction) {
   try {
     const userId = req.user!.userId;
-    const { items } = req.body;
+    const { items, deliveryAddress } = req.body;
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       res.status(400).json({ message: "Order items are required" });
       return;
     }
 
-    const order = await orderService.create(userId, items);
+    if (!deliveryAddress || typeof deliveryAddress !== "string" || deliveryAddress.trim().length === 0) {
+      res.status(400).json({ message: "Delivery address is required" });
+      return;
+    }
+
+    const order = await orderService.create(userId, items, deliveryAddress.trim());
     res.status(201).json(order);
   } catch (error: any) {
     if (error.status) {
