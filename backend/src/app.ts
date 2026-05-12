@@ -1,7 +1,9 @@
 import express from "express";
 import cors from "cors";
+import swaggerUi from "swagger-ui-express";
 import { env } from "./config/env";
 import { errorHandler } from "./middleware/errorHandler";
+import swaggerDocument from "./config/swagger";
 import authRoutes from "./routes/auth.routes";
 import foodRoutes from "./routes/food.routes";
 import categoryRoutes from "./routes/category.routes";
@@ -13,6 +15,8 @@ const app = express();
 
 app.use(cors({ origin: env.CORS_ORIGIN, credentials: true }));
 app.use(express.json());
+
+app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/foods", foodRoutes);
