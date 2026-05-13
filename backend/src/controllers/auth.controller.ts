@@ -20,7 +20,10 @@ export async function register(
     }
 
     const user = await authService.register(name, email, password);
-    res.status(201).json({ message: "User registered successfully", user });
+    res.status(201).json({
+      message: "Registration successful! Please check your email to verify your account.",
+      user,
+    });
   } catch (error: any) {
     if (error.status) {
       res.status(error.status).json({ message: error.message });
@@ -40,6 +43,60 @@ export async function login(req: Request, res: Response, next: NextFunction) {
     }
 
     const result = await authService.login(email, password);
+    res.json(result);
+  } catch (error: any) {
+    if (error.status) {
+      res.status(error.status).json({ message: error.message, code: error.code });
+      return;
+    }
+    next(error);
+  }
+}
+
+export async function verifyEmail(req: Request, res: Response, next: NextFunction) {
+  try {
+    const token = req.params.token as string;
+    if (!token) {
+      res.status(400).json({ message: "Verification token is required" });
+      return;
+    }
+    const result = await authService.verifyEmail(token);
+    res.json(result);
+  } catch (error: any) {
+    if (error.status) {
+      res.status(error.status).json({ message: error.message });
+      return;
+    }
+    next(error);
+  }
+}
+
+export async function resendVerification(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      res.status(400).json({ message: "Email is required" });
+      return;
+    }
+    await authService.resendVerification(email);
+    res.json({ message: "If that email exists and is unverified, a new link has been sent." });
+  } catch (error: any) {
+    if (error.status) {
+      res.status(error.status).json({ message: error.message });
+      return;
+    }
+    next(error);
+  }
+}
+
+export async function googleAuth(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { credential } = req.body;
+    if (!credential) {
+      res.status(400).json({ message: "Google credential is required" });
+      return;
+    }
+    const result = await authService.googleAuth(credential);
     res.json(result);
   } catch (error: any) {
     if (error.status) {

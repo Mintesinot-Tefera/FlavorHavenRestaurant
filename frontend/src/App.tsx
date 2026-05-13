@@ -6,6 +6,8 @@ import AdminDashboardPage from "./pages/AdminDashboardPage";
 import FoodDetailPage from "./pages/FoodDetailPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+import EmailVerificationPage from "./pages/EmailVerificationPage";
+import ResendVerificationPage from "./pages/ResendVerificationPage";
 import CartPage from "./pages/CartPage";
 import OrdersPage from "./pages/OrdersPage";
 import ProfilePage from "./pages/ProfilePage";
@@ -31,6 +33,8 @@ function App() {
           <Route path="/foods/:id" element={<FoodDetailPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/verify-email" element={<EmailVerificationPage />} />
+          <Route path="/resend-verification" element={<ResendVerificationPage />} />
           <Route path="/cart" element={<CartPage />} />
           <Route
             path="/orders"
