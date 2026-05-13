@@ -191,6 +191,12 @@ export default function AdminOrdersPage() {
                             {order.deliveryAddress}
                           </p>
                         )}
+                        {order.notes && (
+                          <p className="text-xs text-gray-500 mb-2">
+                            <span className="font-semibold text-gray-600">Notes:</span>{" "}
+                            {order.notes}
+                          </p>
+                        )}
                         <ul className="space-y-1">
                           {order.items.map((item) => (
                             <li

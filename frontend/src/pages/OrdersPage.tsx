@@ -104,6 +104,12 @@ export default function OrdersPage() {
                     {order.deliveryAddress}
                   </p>
                 )}
+                {order.notes && (
+                  <p className="text-sm text-gray-500 mt-0.5">
+                    <span className="font-medium text-gray-600">Notes:</span>{" "}
+                    {order.notes}
+                  </p>
+                )}
               </div>
               <div className="flex items-center gap-3">
                 <span

@@ -4,7 +4,7 @@ import * as orderService from "../services/order.service";
 export async function create(req: Request, res: Response, next: NextFunction) {
   try {
     const userId = req.user!.userId;
-    const { items, deliveryAddress } = req.body;
+    const { items, deliveryAddress, notes } = req.body;
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       res.status(400).json({ message: "Order items are required" });
@@ -16,7 +16,7 @@ export async function create(req: Request, res: Response, next: NextFunction) {
       return;
     }
 
-    const order = await orderService.create(userId, items, deliveryAddress.trim());
+    const order = await orderService.create(userId, items, deliveryAddress.trim(), notes);
     res.status(201).json(order);
   } catch (error: any) {
     if (error.status) {

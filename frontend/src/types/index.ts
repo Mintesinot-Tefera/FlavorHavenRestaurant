@@ -52,6 +52,7 @@ export interface Order {
   totalPrice: string;
   status: string;
   deliveryAddress: string | null;
+  notes: string | null;
   items: OrderItem[];
   createdAt: string;
   user?: { id: number; name: string; email: string };

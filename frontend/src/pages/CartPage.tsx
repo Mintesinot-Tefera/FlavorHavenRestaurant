@@ -12,6 +12,7 @@ export default function CartPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [deliveryAddress, setDeliveryAddress] = useState("");
+  const [notes, setNotes] = useState("");
 
   async function handlePlaceOrder() {
     if (!isAuthenticated) {
@@ -33,7 +34,7 @@ export default function CartPage() {
         foodId: item.food.id,
         quantity: item.quantity,
       }));
-      await api.post("/orders", { items: orderItems, deliveryAddress: deliveryAddress.trim() });
+      await api.post("/orders", { items: orderItems, deliveryAddress: deliveryAddress.trim(), notes: notes.trim() || undefined });
       clearCart();
       navigate("/orders");
     } catch (err: any) {
@@ -213,6 +214,22 @@ export default function CartPage() {
                 value={deliveryAddress}
                 onChange={(e) => setDeliveryAddress(e.target.value)}
                 placeholder="Enter your full delivery address"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none resize-none"
+              />
+            </div>
+            <div className="mb-4">
+              <label
+                htmlFor="notes"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Special Instructions
+              </label>
+              <textarea
+                id="notes"
+                rows={2}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Allergies, dietary preferences, extra sauce…"
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none resize-none"
               />
             </div>
